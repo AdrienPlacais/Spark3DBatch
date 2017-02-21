@@ -10,8 +10,22 @@ Created on Mon Apr  7 16:49:00 2014
 import os
 import numpy as np 
 import fileinput
-from subprocess import call, check_output, STDOUT, PIPE, Popen
+from subprocess import PIPE, Popen
 import pandas as pd
+
+def printc(message, color='red'):
+    if color in ('red','r'):
+        escape_code = '\x1b[31m'
+    if color in ('blue', 'b'):
+        escape_code = '\x1b[34m'
+    if color in ('green', 'g'):
+        escape_code = '\x1b[32m'
+    if color in ('magenta', 'm'):
+        escape_code = '\x1b[35m'
+    if color in ('cyan', 'c'):
+        escape_code = '\x1b[36m'
+    normal_code = '\x1b[0m'
+    print(escape_code+message+normal_code)
 
 class Spark3d(object):
     """
