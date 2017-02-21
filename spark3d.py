@@ -9,7 +9,9 @@ Created on Mon Apr  7 16:49:00 2014
 """
 import os
 import numpy as np 
+import fileinput
 from subprocess import call, check_output, STDOUT, PIPE, Popen
+import pandas as pd
 
 class Spark3d(object):
     """
@@ -141,11 +143,61 @@ class Spark3d(object):
                                usecols=(3,4), # use only columns 3 and 4
                                unpack=True)
 
+        self.freq = freq
+        self.power = power        
         return freq, power 
 
 
-    def set_config(self):
-        pass
+    def get_full_results(self):
+        """
+        Returns the SPARK3D full results
+        
+        Returns
+        ---------
+         power_results : pandas DataFrame 
+                         Various power tested and multipactor orders
+         time_results: pandas DataFrame
+                         nb of electrons vs time for each power tested
+        
+        """
+        power_results, time_results = [], []
+        full_res_dir = os.path.join(self.project_path, self.output_path, 'region1', 'signal1')
+
+        power_results_file = os.path.join(full_res_dir, 'power_results.txt')
+        print(power_results_file)
+        if os.path.isfile(power_results_file):
+            power_results = pd.read_csv(power_results_file, delimiter='\t', index_col='#Power (W)', na_values='---')
+        
+        time_results_file = os.path.join(full_res_dir, 'time_results.txt') 
+        print(time_results_file)
+        if os.path.isfile(time_results_file):
+            time_results = pd.read_csv(time_results_file, delimiter='\t')
+
+        self.power_results = power_results
+        self.time_results = time_results
+        return power_results, time_results
+
+    def set_config_parameter(self, param, value):
+        config_filename = os.path.join(self.project_path, self.config_file)
+        
+        with fileinput.FileInput(config_filename, inplace=True, backup='.bak') as file:
+            for line in file:
+                if param in line:
+                    print('  {}\t\t{}'.format(param, value))
+                else:
+                    print(line, end='')
+        
+    def get_config_parameter(self, param):
+        config_filename = os.path.join(self.project_path, self.config_file)
+        
+        value = []
+        with fileinput.FileInput(config_filename) as file:
+            for line in file:
+                if param in line:
+                    value = float(line.split()[1])
+                    print(value)
+       
+        return value
            
 if __name__ == "__main__":  
     # Absolute path of the project
