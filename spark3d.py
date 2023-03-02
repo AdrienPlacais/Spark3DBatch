@@ -1,255 +1,381 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Python Library to launch Spark3D simulations.
-Usefull to make batch calculations.
+Created on Wed Mar  1 11:29:06 2023
 
-Created on Mon Apr  7 16:49:00 2014
-
-@author: J.Hillairet
+@author: A. Plaçais
+fork from J. Hillairet JH218595
 """
 import os
-import numpy as np
-import fileinput
 from subprocess import PIPE, Popen
+import numpy as np
 import pandas as pd
 
-
-def printc(message, color='red'):
-    if color in ('red', 'r'):
-        escape_code = '\x1b[31m'
-    if color in ('blue', 'b'):
-        escape_code = '\x1b[34m'
-    if color in ('green', 'g'):
-        escape_code = '\x1b[32m'
-    if color in ('magenta', 'm'):
-        escape_code = '\x1b[35m'
-    if color in ('cyan', 'c'):
-        escape_code = '\x1b[36m'
-    normal_code = '\x1b[0m'
-    print(escape_code+message+normal_code)
+from helper import printc
 
 
-class Spark3d(object):
-    """
-    SPARK3D simulation object.
+class Spark3D():
+    """Spark3D simulation object."""
+    SPARK_PATH = "/opt/cst/CST_Studio_Suite_2023/SPARK3D"
+    BIN_PATH = os.path.join(SPARK_PATH, "./spark3d")
 
-    IMPORTANT:
-    The 'path-to-spark3D/dist/' directory should added in the user
-    LD_LIBRARY_PATH environment variable.
-
-    Moreover, a 'config.min' file and a 'results/' directory should be present
-    in the project directory.
-    """
-    # Absolute path of the 'spark3d' binary file
-    SPARK_PATH = "/opt/cst/CST_Studio_Suite_2023/SPARK3D/"
-    BIN_PATH = SPARK_PATH + "./spark3d"
-
-    def __init__(self, project_path: str, data_file: str,
-                 file_type: str = 'spkx', output_path: str = 'results/',
-                 tmp_path: str = 'tmp/', config_file: str = 'config.min'):
+    def __init__(self, project_path: str, *args: str, output_path: str = None,
+                 **kwargs) -> None:
         """
         Constructor.
 
         Parameters
         ----------
         project_path : str
-            Absolute path (important!) of the project.
-        data_file : str
-            Relative path of the data file.
-        file_type : {'spkx', 'hfss', 'cst', 'csv'}
-            Take care of the model units: mm!. The default is 'spkx'.
+            Folder where the .spkx is stored.
+        file_name : str
+            Name of the .spkx. with extension.
         output_path : str, optional
-            Relative path of the output dir. The default is 'results/'.
-        tmp_path : str, optional
-            Temporary file relative path. The default is 'tmp/'.
-        config_file : str, optional
-            Config filename. The default is 'config.min'.
+            Where results are stored. The default is None, which is changed to
+            project_path during object construction.
 
         Returns
         -------
-        None.
+        None
 
         """
-        self.file_type = file_type
-        if file_type not in ('hfss', 'cst', 'csv', 'spkx'):
-            raise ValueError(
-                "Bad file type. Should be 'hfss','cst', 'csv' or 'spkx'.")
-
         self.project_path = project_path
-        if not os.path.exists(project_path):
-            raise OSError('Incorrect project directory (absolute) path.')
 
-        # Spark3D configuration filename
-        self.config_file = config_file
-        if not os.path.isfile(os.path.join(project_path, config_file)):
-            path = os.path.join(project_path, config_file)
-            raise OSError(
-                f'Incorrect (relative) configuration filename: {path}.')
+        file_name, base_command = self._handle_different_input_types(*args,
+                                                                     **kwargs)
+        self.file_name = file_name
+        self.input = os.path.join(project_path, file_name)
+        self.base_command = base_command
 
-        self.data_file = data_file
-        if not os.path.isfile(os.path.join(project_path, data_file)):
-            path = os.path.join(project_path, data_file)
-            raise OSError('Incorrect data file (relative) path: {path}')
+        if output_path is None:
+            tmp = os.path.splitext(file_name)[0]
+            self.output_path = os.path.join(self.project_path, tmp)
 
-        self.tmp_path = tmp_path
-        if not os.path.exists(os.path.join(project_path, tmp_path)):
-            raise OSError('Incorrect  temp directory (relative) path.')
+        self.results_path = None
+        # created by self._get_results_dir in self.run (path depends on the
+        # configuration)
 
-        self.output_path = output_path
-        if not os.path.exists(os.path.join(project_path, output_path)):
-            raise OSError('Invalid output directory (relative) path.')
+        self._check_paths_exist()
 
-        # The default results file should be the following
-        self.results_file = os.path.join(project_path, output_path,
-                                         'general_results.txt')
-
-    def run(self):
+    def run(self, configuration: str, d_conf: dict = None) -> None:
         """
-        Run the SPARK3D modeling.
+        Launch the project.
 
-        """
-        try:
-            # Add the Spark3D library dir to the PATH
-            env = os.environ
-            if 'Spark3D' not in env['LD_LIBRARY_PATH']:
-                env['PATH'] = os.path.join(self.SPARK_PATH,
-                                           'dist') + ':' + env['PATH']
-                env['LD_LIBRARY_PATH'] = \
-                    os.path.join(self.SPARK_PATH,
-                                 'dist') + ':' + env['LD_LIBRARY_PATH']
-
-            # retcode = call(self._get_run_command(), shell=True)
-
-            # retcode = check_output(self._get_run_command(),
-            #                        shell=True, env=env)
-            # Runs the process and print the output in the python shell
-
-            cmd = self._get_run_command()
-            print(f"Running SPARK3D with command {cmd}\n")
-            with Popen(cmd, shell=True, env=env, stdout=PIPE, stderr=PIPE,
-                       universal_newlines=True) as p:
-                for lines in p.stdout:
-                    print(lines, end=' ')
-            print(p.returncode)
-
-        except OSError as e:
-            print('Error!' + e)
-
-    def _get_run_command(self):
-        kwargs = {'--tmp_path': self.tmp_path,
-                  '--mode': 'multipactor',
-                  '--project_path': self.project_path,
-                  '--config_file': self.config_file,
-                  '--output_path': self.output_path,
-                  '--data_file': self.data_file,
-                  '--file_type': self.file_type,
-                  '--HFSS_units': 'mm',
-                  }
-
-        cmd = [self.BIN_PATH]
-        for key, value in kwargs.items():
-            cmd.append(key + "=" + str(value))
-
-        return cmd
-
-    def get_results(self):
-        """
-        Returns the SPARK3D run results
-
-        Arguments
+        Parameters
         ----------
-         none
+        configuration : {'Multipactor', 'Video Multipactor', 'Corona',
+                         'Video Corona'}
+            Type of simulation.
+        d_conf : dict, optional
+             Holds the information on the geometry, etc. Default is None.
 
         Returns
-        ----------
-         freq: array of frequency
-         power: array of breakdown power
+        -------
+        None
+
+        """
+        cmd = self._get_cmd(configuration, d_conf)
+        if d_conf is None:
+            d_conf = {}
+
+        printc("Spark3D.run info:", f"running SPARK3D with command\n{cmd}")
+        try:
+            env = os.environ
+            with Popen(cmd, shell=True, env=env, stdout=PIPE,
+                       stderr=PIPE, universal_newlines=True) as proc:
+                for line in proc.stdout:
+                    print(line, end='')
+            printc("Spark3D.run info:", "run finished with return code",
+                   f"{proc.returncode}.")
+
+            # FIXME
+            if proc.returncode != 0:
+                printc("Spark3D.run warning:", "this return code means that",
+                       "an error ocurred during SPARK3D execution. Try to",
+                       "manually copy-paste the SPARK3D command to output",
+                       "more information.")
+
+        except OSError as err:
+            printc("Spark3D.run error:", err)
+
+    def get_full_results(self) -> (pd.DataFrame, pd.DataFrame):
+        """
+        Get the entire simulation results.
+
+        Returns
+        -------
+        pd_power : pd.DataFrame
+            Holds breakdown power, status (BD or noBD) and 'Multipactor order'.
+        pd_time : pd.DataFrame
+            Holds simulation number, power, and number of particles vs. time
+            for every simulation (every power).
+
+        """
+        # TODO auto detect where the results are stored
+        res_dir = os.path.join(self.results_path, 'region1', 'signal1')
+        assert os.path.exists(res_dir), f"{res_dir} does not exist."
+
+        res = [None, None]
+        for i, file in enumerate(['power_results.txt', 'time_results.txt']):
+            file = os.path.join(res_dir, file)
+            if os.path.isfile(file):
+                res[i] = pd.read_csv(file, delimiter='\t', na_values='---')
+
+        pd_power, pd_time = res
+        return pd_power, pd_time
+
+    def get_results(self) -> (np.ndarray, np.ndarray):
+        """
+        Get a resume of results.
+
+
+        Returns
+        -------
+        freq : np.ndarray
+            Array of frequencies in Hz.
+        power : np.ndarray
+            Array of corresponding breakdown powers in W.
 
         """
         freq, power = None, None
-        if os.path.isfile(self.results_file):
-            freq, power = np.loadtxt(
-                self.results_file,
-                skiprows=1,
-                delimiter='\t',
-                usecols=(3, 4),  # use only columns 3 and 4
-                unpack=True)
-
-        self.freq = freq
-        self.power = power
+        file = os.path.join(self.results_path, 'general_results.txt')
+        if os.path.isfile(file):
+            freq, power = np.loadtxt(file, skiprows=1, delimiter='\t',
+                                     usecols=(3, 4), unpack=True)
         return freq, power
 
-    def get_full_results(self):
+    def _handle_different_input_types(self, *args: str,
+                                      new_project_name: str = None,
+                                      unitsRF: str = None) -> (str, str):
         """
-        Returns the SPARK3D full results
+        Handle the two types of input in a way that is transparent for user.
+
+        Case 1: one argument is given and must be a .spkx.
+        Case 2: two arguments are given and must be a .xml and a field map.
+
+        Parameters
+        ----------
+        *args : (str, ) | (str, str, )
+            Relative path to a .spkx OR relative path to a .xml file and
+            relative path to field map file (.dsp, .f3e or .mfe).
+        new_project_name : str, optional
+            Name of the project constructed from .xml and field map file. .spkx
+            extension must be provided. The default is None (then changed to
+            'my_project.spkx')
+        unitsRF : {'m', 'mm', 'inches'}
+            Units of the file field map comes from HFSS (.dsp I think?). The
+            default is None.
+
+        Raises
+        ------
+        IOError
+            When the number of input file(s) and/or their type(s) are
+            inconsistent.
 
         Returns
-        ---------
-         power_results : pandas DataFrame
-                         Various power tested and multipactor orders
-         time_results: pandas DataFrame
-                         nb of electrons vs time for each power tested
+        -------
+        (str, str)
+            The project name, the portion of command line that allows SPARK to
+            identify or construct the project.
 
         """
-        power_results, time_results = [], []
-        full_res_dir = os.path.join(self.project_path, self.output_path,
-                                    'region1', 'signal1')
+        paths = [os.path.join(self.project_path, _fp) for _fp in args]
+        for path in paths:
+            assert os.path.isfile(path), f"Input file {path} does not exist."
 
-        power_results_file = os.path.join(full_res_dir, 'power_results.txt')
-        print(power_results_file)
-        if os.path.isfile(power_results_file):
-            power_results = pd.read_csv(power_results_file, delimiter='\t',
-                                        index_col='#Power (W)',
-                                        na_values='---')
+        filetypes = [os.path.splitext(path)[-1] for path in paths]
 
-        time_results_file = os.path.join(full_res_dir, 'time_results.txt')
-        print(time_results_file)
-        if os.path.isfile(time_results_file):
-            time_results = pd.read_csv(time_results_file, delimiter='\t')
+        if len(paths) == 1 and filetypes == ['.spkx']:
+            cmd_input = f"--input={paths[0]}"
+            return paths[0], cmd_input
 
-        self.power_results = power_results
-        self.time_results = time_results
-        return power_results, time_results
+        allowed_field_maps = ('.dsp', '.f3e', '.mfe')
+        inter = [ext for ext in filetypes if ext in allowed_field_maps]
+        if len(paths) == 2 and '.xml' in filetypes and len(inter) == 1:
+            i_field, i_xml = filetypes.index(inter[0]), filetypes.index('.xml')
+            fp_field, fp_xml = paths[i_field], paths[i_xml]
 
-    def set_config_parameter(self, param, value):
-        config_filename = os.path.join(self.project_path, self.config_file)
+            fp_project = os.path.join(self.project_path, new_project_name)
+            cmd_input = f"--XMLfile={fp_xml} --importRF={fp_field} "
 
-        with fileinput.FileInput(config_filename,
-                                 inplace=True, backup='.bak') as file:
-            for line in file:
-                if param in line:
-                    print('  {}\t\t{}'.format(param, value))
-                else:
-                    print(line, end='')
+            if inter[0] == '.dsp':
+                # TODO check how HFSS files work
+                assert unitsRF in ('m', 'mm', 'inches'), "The .dsp is a HFSS" \
+                        + " field map file, right? In this case you must" \
+                        + " provide a valid 'unitsRF' key."
+                cmd_input += f"unitsRF={unitsRF} "
 
-    def get_config_parameter(self, param):
-        config_filename = os.path.join(self.project_path, self.config_file)
+            if new_project_name is None:
+                new_project_name = "my_project.spkx"
+            cmd_input += f"--projectName={fp_project}"
 
-        value = []
-        with fileinput.FileInput(config_filename) as file:
-            for line in file:
-                if param in line:
-                    value = float(line.split()[1])
-                    print(value)
+            return fp_project, cmd_input
 
-        return value
+        raise IOError(f"Inconsistent input files {args}")
+
+    # TODO not really necessary
+    def _check_paths_exist(self) -> None:
+        """Verify if the required folders and files do exist."""
+        for path in [self.project_path]:
+            assert os.path.exists(path), f"{path} does not exist."
+
+    def _get_cmd(self, configuration: str, d_conf: dict = None) -> str:
+        """
+        Create the command for the project.
+
+        Parameters
+        ----------
+        configuration : {'Multipactor', 'Video Multipactor', 'Corona',
+                         'Video Corona'}
+            Type of simulation.
+        d_conf : dict, optional
+             Holds the information on the geometry, etc. Default is None.
+
+        Returns
+        -------
+        str
+            Command to launch SPARK3D.
+
+        """
+        mode = 'Multipactor'
+        if d_conf is None:
+            d_conf = {}
+
+        # cmd = [self.BIN_PATH, f"--input={self.input}"]
+        cmd = [self.BIN_PATH, self.base_command]
+
+        spkx_kwargs = {
+            '--output': self.output_path,
+        }
+
+        # No argument required, just validate the integrity of the file or list
+        # the valid configurations
+        if configuration in ('--validate', '--list'):
+            cmd.append(configuration)
+            return ' '.join(cmd)
+
+        if configuration == '--config':
+            my_configuration = self._get_config(mode, **d_conf)
+            self.results_path = os.path.join(
+                self.output_path, self._get_results_dir(mode, **d_conf))
+            cmd.append(f"{configuration}={my_configuration}")
+
+            for key, value in spkx_kwargs.items():
+                cmd.append(key + "=" + str(value))
+            return ' '.join(cmd)
+
+        return IOError(f'configuration {configuration} was not recognized.')
+
+    def _get_config(self, mode: str, project: int = 1, model: int = 1,
+                    confs: int = 1, em_conf: int = 1, discharge_conf: int = 1,
+                    video: int = 1) -> str:
+        """
+        Create the argument that goes after '--config='.
+
+        Parameters
+        ----------
+        mode : {'Multipactor', 'Video Multipactor', 'Corona', 'Video Corona'}
+            Type of simulation to be performed.
+        project : int, optional
+            Project ID. The default is 1.
+        model : int, optional
+            Model ID. The default is 1.
+        confs : int, optional
+            Configurations ID. The default is 1.
+        em_conf : int, optional
+            EMConfigGroup ID. The default is 1.
+        discharge_conf : int, optional
+            MultipactorConfig or CoronaConfig ID. The default is 1.
+        video : int, optional
+            VideoMultipactorConfig or VideoCoronaConfig. The default is 1.
+
+        Returns
+        -------
+        str
+            Argument that goes adter '--config='.
+
+        """
+
+        out = [f"Project:{project}", f"/Model:{model}",
+               f"/Configurations:{confs}", f"/EMConfigGroup:{em_conf}"]
+
+        d_mode = {
+            "Multipactor": f"/MultipactorConfig:{discharge_conf}//",
+            "Video Multipactor": f"/MultipactorConfig:{discharge_conf}"
+                                 + f"/VideoMultipactorConfig:{video}//",
+            "Corona": f"/CoronaConfig:{discharge_conf}//",
+            "Video Corona": f"/CoronaConfig:{discharge_conf}"
+                            + f"/VideoCoronaConfig:{video}//",
+        }
+        if mode not in d_mode:
+            raise IOError('Invalid mode.')
+        out.append(d_mode[mode])
+        return ''.join(out)
+
+    # TODO: check dirs for Corona and Videos
+    def _get_results_dir(self, mode: str, project: int = 1, model: int = 1,
+                         confs: int = 1, em_conf: int = 1,
+                         discharge_conf: int = 1, video: int = 1) -> str:
+        """
+        Get the full path to the results folder.
+
+        Parameters
+        ----------
+        mode : {'Multipactor', 'Video Multipactor', 'Corona', 'Video Corona'}
+            Type of simulation to be performed.
+        project : int, optional
+            Project ID. The default is 1.
+        model : int, optional
+            Model ID. The default is 1.
+        confs : int, optional
+            Configurations ID. The default is 1.
+        em_conf : int, optional
+            EMConfigGroup ID. The default is 1.
+        discharge_conf : int, optional
+            MultipactorConfig or CoronaConfig ID. The default is 1.
+        video : int, optional
+            VideoMultipactorConfig or VideoCoronaConfig. The default is 1.
+
+        Returns
+        -------
+        str
+            Path to the results.
+
+        """
+        out = ["Results", f"@Mod{model}", f"@ConfGr{confs}",
+               f"@EMConfGr{em_conf}"]
+
+        d_mode = {"Multipactor": [f"@MuConf{discharge_conf}"],
+                  "Video Multipactor": [f"@MuConf{discharge_conf}",
+                                        f"@Video{video}"],
+                  "Corona": [f"@CoConf{discharge_conf}"],
+                  "Video Corona":  [f"@CoConf{discharge_conf}",
+                                    f"@Video{video}"],
+                  }
+        out.extend(d_mode[mode])
+        path = os.path.join(*out)
+        return path
 
 
 if __name__ == "__main__":
-    # Absolute path of the project
-    project_path = \
-        "/home/placais/Documents/Simulation/work_spark3d/tesla"
-    # Relative path to the .dsp file
-    data_file = 'TESLA_2.spkx'
-    config_file = 'config.min'
+    # WARNING! No special characters are allowed as they mess with bash
+    # Examples of paths to avoid:
+    #   spaces in: /Documents/spark3d workspace 2023/
+    #   parenthesis in: ExportToSPARK3D(1).f3e
 
-    # Run the Spark3D Simulation
-    spk = Spark3d(project_path, data_file, config_file=config_file)
-    spk.run()
-    freq, power = spk.get_results()
-    print(freq, power)
+    PROJECT = "/home/placais/Documents/Simulation/work_spark3d"
+    args = ("coax_filter_correct_name.spkx", )
+    kwargs = {}
 
-    # Appending the results to a text file
-    with open('RESULTS.txt', 'ba') as f_handle:
-        np.savetxt(f_handle, [power])
-# /run/user/10204/gvfs/sftp:host=lpscdata12.in2p3.fr,user=placais/data11-10/pole_acc_ssi_data12/PLACAIS/spark3d workspace 2023/TESLA_2.spkx
+    # Create object
+    spk = Spark3D(PROJECT, *args, **kwargs)
+
+    # Simulation options
+    CONFIG = "--validate"
+    D_CONF = {"project": 1, "model": 1, "confs": 1, "em_conf": 1,
+              "discharge_conf": 1, "video": -1}
+
+    # Run
+    spk.run(CONFIG, D_CONF)
+    if CONFIG == "--config":
+        my_power, my_time = spk.get_full_results()

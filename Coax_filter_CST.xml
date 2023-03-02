@@ -1,0 +1,208 @@
+
+<Spark>
+
+  <version>2023 SP2</version>
+
+  <Metadata>
+    <date>02-03-2023</date>
+    <time>08:40:45 AM</time>
+  </Metadata>
+
+  <Project>
+    <VariableFactory/>
+    <name>{Coax_filter_CST}</name>
+    <DimensionsUnit>m</DimensionsUnit>
+    <TemperatureUnit>Kelvin</TemperatureUnit>
+    <FrequencyUnit>Hz</FrequencyUnit>
+    <TimeUnit>s</TimeUnit>
+    <VoltageUnit>V</VoltageUnit>
+    <CurrentUnit>A</CurrentUnit>
+    <ResistanceUnit>Ohm</ResistanceUnit>
+    <ConductanceUnit>Siemens</ConductanceUnit>
+    <InductanceUnit>H</InductanceUnit>
+    <CapacitanceUnit>F</CapacitanceUnit>
+    <PressureUnit>mBar</PressureUnit>
+    <PowerUnit>W</PowerUnit>
+    <AngleUnit>Degree</AngleUnit>
+    <Model>
+      <VariableFactory/>
+      <name>{Middle_cavity_eigenmode}</name>
+      <Id>1</Id>
+      <modelType>CST</modelType>
+      <description>{
+Example of .xml; created by unziping Coax_filter_CST(M, C, Eigenmode).spkx, which is shipped with Spark3D. In order for the simulation to work, you will also need the ExportToSPARK3D(1).f3e file.
+Original file description:
+--------------------------
+
+THIS PROJECT DESCRIBES HOW TO USE SPARK3D WITH THE EIGENMODE SOLVER OF CST MWS.
+
+
+This project describes how to use SPARK3D with the Eigenmode solver of CST MWS, and how to combine the output from SPARK3D together with the Stored Energy in the filter (which can be calculated by FD3D software tool) to estimate the breakdown power level of the filter just analysing the 3D model of a cavity and having the filter designed in FD3D.
+
+This model represents a cavity resonating at around 1.75 GHz. The CST MWS Eigenmode solver has been used to solve the structure and to export the fields to SPARK3D. SPARK3D imports the fields and scales them in order to determine the breakdown. Please, notice that we do not have input power here because there are no ports so the output of SPARK3D has to be understood as a scale factor in this case (Eigenmode) and not an actual power level.
+
+Once the scale factor has been obtained from SPARK3D, one can determine the breakdown power threshold of this cavity on the filter by applying this formula:
+
+
+                                      PBreakdown = 2*(scale_factor)/(Stored_energy_in_J/W).
+
+
+The result (scale_factor) for MULTIPACTOR breakdown in the closed cavity is 4 e-8!! (You can check this in the results window).
+
+The result (scale_factor) for CORONA breakdown in the closed cavity is 4.13 e-9 @ 3 mBar (You can check this in the results window).
+
+
+For a 5 pole filter at center frequency of 1.75 and with approx 100 MHZ bandwidth, FD3D calculation provides a stored energy calculation of 2. 6e-9 J/W.
+
+So, using the formula above, the MULTIPACTOR breakdown power level of this cavity within the filter would be around 30.5 W and the CORONA breakdown power level of this cavity within the filter would be around 3.8 W @ 3mBar.
+
+One can see that in the second model of this project (Complete Filter), the cavity within the filter has been analysed resulting in a multipactor breakdown of around 29 W and a corona breakdown of around 3.3 W, both showing a good agreement with respect to the calculation of the breakdown by using only an isolated cavity.}</description>
+      <importedFileName>{ExportToSPARK3D(1).f3e}</importedFileName>
+      <Units>m</Units>
+      <numPoints>37582</numPoints>
+      <numCells>24722</numCells>
+      <fileSize>15.1102638244629</fileSize>
+      <BoxRegion>
+        <name>{Circuit}</name>
+        <Id>1</Id>
+        <analyze>0</analyze>
+        <originCoordinates>(0;0;0)</originCoordinates>
+      </BoxRegion>
+      <CWSingleCarrierSignal>
+        <name>{CW 1}</name>
+        <Id>1</Id>
+        <Carrier enabled="1">
+          <signalFreq>1768607901.69435</signalFreq>
+          <ExcitationPort>
+            <number>{Eigenmode}</number>
+            <ExcitedMode>()</ExcitedMode>
+          </ExcitationPort>
+        </Carrier>
+      </CWSingleCarrierSignal>
+      <Configurations>
+        <name>{Configurations 1}</name>
+        <Id>1</Id>
+        <EMConfigGroup>
+          <name>{EMConfigGroup 1}</name>
+          <Id>1</Id>
+          <MultipactorConfig>
+            <name>{MultipactorConfig 1}</name>
+            <Id>1</Id>
+            <selectedFields>(({MeshConfigImported 1},({ImportRFField 1})))</selectedFields>
+            <DC_BField>()</DC_BField>
+            <DC_EField>()</DC_EField>
+            <DC_BMultiplier>()</DC_BMultiplier>
+            <DC_EMultiplier>()</DC_EMultiplier>
+            <initialNumberElectrons>2000</initialNumberElectrons>
+            <SCInitialPower>1e-07</SCInitialPower>
+            <SCPrecision>0.1</SCPrecision>
+            <SCMaxPower>1000000</SCMaxPower>
+            <multipactorCriterion>default</multipactorCriterion>
+            <criterionFixedFactor>10</criterionFixedFactor>
+            <extDCBfieldUniform>0</extDCBfieldUniform>
+            <BDCx>0</BDCx>
+            <BDCy>0</BDCy>
+            <BDCz>0</BDCz>
+            <extDCEfieldUniform>0</extDCEfieldUniform>
+            <EDCx>0</EDCx>
+            <EDCy>0</EDCy>
+            <EDCz>0</EDCz>
+            <pathRelativePrecision>1</pathRelativePrecision>
+            <homogeneousEmission>0</homogeneousEmission>
+            <write3DStats>1</write3DStats>
+            <customFixedTime>0</customFixedTime>
+            <customMaxTime>10</customMaxTime>
+            <iterationType>bisection</iterationType>
+            <VideoMultipactorConfig>
+              <name>{VideoMultipactorConfig 1}</name>
+              <Id>1</Id>
+              <selectedFields>(({MeshConfigImported 1},({ImportRFField 1})))</selectedFields>
+              <FramesPerPeriod>10</FramesPerPeriod>
+              <InputPower>4.88e-08</InputPower>
+              <StartTime>0</StartTime>
+              <EndTime>50</EndTime>
+            </VideoMultipactorConfig>
+            <PowerSweep enable="1">
+              <name>{SweepUtil 1}</name>
+              <Id>1</Id>
+              <sweepMode>SWEEP_LIST</sweepMode>
+              <sweepScale>SWEEP_NPOINTS_LINEAR</sweepScale>
+              <start>1e-06</start>
+              <end>1e-06</end>
+              <step>0</step>
+              <numberPoints>1</numberPoints>
+              <sweepPoints>(500)</sweepPoints>
+            </PowerSweep>
+            <SEYDefinition>
+              <seyDeftype>aluminium</seyDeftype>
+              <materialName>{Default}</materialName>
+              <SEYModelName>Vaughan</SEYModelName>
+              <maxSecondaryEmissionCoeff>2.98</maxSecondaryEmissionCoeff>
+              <lowerCrossoverElectronEnergy>23.3</lowerCrossoverElectronEnergy>
+              <secondaryEmissionCoeffBelowLowCrossover>0.5</secondaryEmissionCoeffBelowLowCrossover>
+              <electronEnergyAtMaxSEY>150</electronEnergyAtMaxSEY>
+              <customEVec>()</customEVec>
+              <customSEYRVec>()</customSEYRVec>
+              <customSEYSVec>()</customSEYSVec>
+              <customSEYFileName>{}</customSEYFileName>
+            </SEYDefinition>
+          </MultipactorConfig>
+          <CoronaConfig>
+            <name>{CoronaConfig 1}</name>
+            <Id>1</Id>
+            <selectedFields>(({MeshConfigImported 1},({ImportRFField 1})))</selectedFields>
+            <initialPower>100</initialPower>
+            <initial_power_type>automatic</initial_power_type>
+            <temperature>293</temperature>
+            <precision>0.1</precision>
+            <gas>air</gas>
+            <simulationType>numeric</simulationType>
+            <fixedInputPower>100</fixedInputPower>
+            <iterationType>brent</iterationType>
+            <simulationType_fixedPower>numeric_high_pressure</simulationType_fixedPower>
+            <VideoCoronaConfig>
+              <name>{VideoCoronaConfig 1}</name>
+              <Id>1</Id>
+              <selectedFields>(({MeshConfigImported 1},({ImportRFField 1})))</selectedFields>
+              <FramesPerPeriod>15</FramesPerPeriod>
+              <InputPower>100</InputPower>
+              <StopCriterion>densMax</StopCriterion>
+              <ElectronMaxDens>1000</ElectronMaxDens>
+              <EndTime>1</EndTime>
+              <CoronaPressure>1</CoronaPressure>
+              <AccuracyType>high</AccuracyType>
+            </VideoCoronaConfig>
+            <PressureSweep enable="1">
+              <name>{PressureSweep 1}</name>
+              <Id>1</Id>
+              <sweepMode>SWEEP_NPOINTS</sweepMode>
+              <sweepScale>SWEEP_NPOINTS_LINEAR</sweepScale>
+              <start>1</start>
+              <end>4</end>
+              <step>1</step>
+              <numberPoints>4</numberPoints>
+              <sweepPoints>()</sweepPoints>
+            </PressureSweep>
+          </CoronaConfig>
+          <MeshConfigImported>
+            <name>{MeshConfigImported 1}</name>
+            <Id>1</Id>
+            <regionLabel>{Circuit}</regionLabel>
+            <ImportRFMesh>
+              <name>{ImportRFMesh 1}</name>
+              <Id>1</Id>
+              <importFile>{ExportToSPARK3D(1).f3e}</importFile>
+              <fileFormat>CST</fileFormat>
+              <ImportRFField>
+                <name>{ImportRFField 1}</name>
+                <Id>1</Id>
+                <signalLabel>{CW 1}</signalLabel>
+              </ImportRFField>
+            </ImportRFMesh>
+          </MeshConfigImported>
+        </EMConfigGroup>
+      </Configurations>
+    </Model>
+  </Project>
+
+</Spark>
