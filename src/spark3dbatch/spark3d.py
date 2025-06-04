@@ -29,8 +29,8 @@ FIELD_MAPS = (".dsp", ".f3e", ".mfe")
 class Spark3D:
     """Spark3D simulation object."""
 
-    SPARK_PATH = Path("/home/placais/apps/cst/CST_Studio_Suite_2025/SPARK3D/")
-    BIN_PATH = SPARK_PATH / "./spark3d"
+    _installation_folder = Path(os.environ.get("SPARK3DPATH", ""))
+    _spark3d_bin = _installation_folder / "./spark3d"
 
     def __init__(
         self,
@@ -52,6 +52,17 @@ class Spark3D:
             ``project_path`` during object construction.
 
         """
+        if not self._installation_folder.is_dir():
+            raise FileNotFoundError(
+                "The `SPARK3DPATH` environment variable is unset or points to "
+                "a non-existing folder.\n"
+                f"$SPARK3DPATH={str(self._installation_folder)}"
+            )
+        if not self._spark3d_bin.is_file():
+            raise FileNotFoundError(
+                "The `spark3d` executable was not found in "
+                f"{self._installation_folder}"
+            )
         assert project_path.exists()
         self.project_path = project_path
 
@@ -265,7 +276,7 @@ class Spark3D:
             config = {}
 
         # cmd = [self.BIN_PATH, f"--input={self.input}"]
-        cmd = [self.BIN_PATH, self.base_command]
+        cmd = [self._spark3d_bin, self.base_command]
 
         spkx_kwargs = {
             "--output": self.output_path,
