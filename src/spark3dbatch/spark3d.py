@@ -8,8 +8,8 @@ from typing import Literal
 
 import numpy as np
 import pandas as pd
-from helper import printc
 from numpy.typing import NDArray
+from spark3dbatch.helper import printc
 
 MODES = Literal[
     "Multipactor",

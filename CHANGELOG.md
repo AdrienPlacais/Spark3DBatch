@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 # [0.1.x]
 
+## [0.1.5]
+
+### Fixed
+
+- Imports to ``spark3dbatch`` module.
+
 ## [0.1.4] - 2025-06-04
 
 ### Fixed
