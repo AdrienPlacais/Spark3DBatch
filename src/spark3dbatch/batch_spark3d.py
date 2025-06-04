@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Provide an example main script."""
+"""Provide an example main script.
+
+.. todo::
+    Fix paths with importlib
+
+"""
 from pathlib import Path
 
 import numpy as np
