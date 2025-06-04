@@ -62,3 +62,5 @@ target/
 # Perso
 *.swp
 *.txt
+
+*_backup.xml
