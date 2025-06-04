@@ -8,6 +8,15 @@ This library needs Python 3.x.
 Firstly, adapt the variables `SPARK_PATH` and `BIN_PATH` in `spark3d.py` to
 your distribution.
 
+You must set the environment variable `$SPARK3DPATH` to point to the folder containing the SPARK3D executable.
+In general, adding the following line to your `.bashrc` will do the trick:
+```bash
+export SPARK3DPATH="/opt/cst/CST_Studio_Suite_20XX/SPARK3D/"
+```
+
+> [!IMPORTANT]
+> Not tested on Windows.
+
 ## Usage
 
 Two options:
@@ -21,11 +30,11 @@ Two options:
 ## To-do
 
 ### Important
-- [ ] Allow for control over accelerating field instead of power
-- [ ] Change how the path to SPARK3D is declared. Currently not robust at all.
+- [x] Allow for control over accelerating field instead of power
+- [x] Change how the path to SPARK3D is declared. Currently not robust at all.
 
 ### Secondary
-- [ ] Package test data
+- [x] Package test data
 
 ### Tertiary
 - [ ] Complete installation instructions
@@ -34,4 +43,4 @@ Two options:
 - [ ] On `pip`
 - [ ] Tests
 - [ ] Use `logging` instead of `printc`
-- [ ] Add `release.py`
+- [x] Add `release.py`
