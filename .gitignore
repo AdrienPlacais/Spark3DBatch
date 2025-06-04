@@ -57,6 +57,11 @@ docs/_build/
 # PyBuilder
 target/
 
+.python-version
+
 # Perso
 *.swp
 *.txt
+
+*_backup.xml
+*.spkx
