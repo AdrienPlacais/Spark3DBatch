@@ -10,7 +10,7 @@ from collections.abc import Sequence
 from pathlib import Path
 
 import numpy as np
-from helper import fmt_array, printc
+from spark3dbatch.helper import fmt_array, printc
 
 
 class SparkXML:

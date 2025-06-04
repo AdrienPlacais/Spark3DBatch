@@ -8,9 +8,9 @@
 from pathlib import Path
 
 import numpy as np
-import spark3d as sp
-from helper import fmt_array
-from xml_parser import SparkXML
+import spark3dbatch.spark3d as sp
+from spark3dbatch.helper import fmt_array
+from spark3dbatch.xml_parser import SparkXML
 
 # First simple option: provide a ``SPKX`` file
 project = Path("/home/placais/Documents/simulation/python/Spark3DBatch/data/")
