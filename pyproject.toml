@@ -12,7 +12,7 @@ dependencies = ["numpy>=2, <3", "pre-commit>=4, <5", "pandas>=2.2, <3"]
 description = "Launch SPARK3D simulations by batch; list of powers or accelerating fields."
 dynamic = ["version"]
 keywords = ["post treatment", "multipactor"]
-name = "Spark3DBatch"
+name = "spark3d-batch"
 readme = "README.md"
 requires-python = ">=3.9"
 
