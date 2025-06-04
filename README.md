@@ -25,7 +25,7 @@ Two options:
 - [ ] Change how the path to SPARK3D is declared. Currently not robust at all.
 
 ### Secondary
-- [ ] Package test data
+- [x] Package test data
 
 ### Tertiary
 - [ ] Complete installation instructions
@@ -34,4 +34,4 @@ Two options:
 - [ ] On `pip`
 - [ ] Tests
 - [ ] Use `logging` instead of `printc`
-- [ ] Add `release.py`
+- [x] Add `release.py`
