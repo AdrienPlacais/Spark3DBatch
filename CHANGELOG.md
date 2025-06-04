@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 # [0.1.x]
 
+## [0.1.2]
+
+### Added
+
+- Workflow to release on PyPI.
+
 ## [0.1.1] - 2025-06-04
 
 ### Added
