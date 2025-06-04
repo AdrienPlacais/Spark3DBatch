@@ -1,0 +1,47 @@
+[project]
+authors = [{ name = "Adrien Plaçais", email = "placais@lpsc.in2p3.fr" }]
+classifiers = [
+   "Development Status :: 3 - Alpha",
+   "Intended Audience :: Science/Research",
+   "License :: OSI Approved :: MIT License",
+   "Operating System :: OS Independent",
+   "Programming Language :: Python :: 3.9",
+   "Topic :: Scientific/Engineering :: Physics",
+]
+dependencies = ["numpy>=2, <3", "pre-commit>=4, <5", "pandas>=2.2, <3"]
+description = "Launch SPARK3D simulations by batch; list of powers or accelerating fields."
+dynamic = ["version"]
+keywords = ["post treatment", "multipactor"]
+name = "Spark3DBatch"
+readme = "README.md"
+requires-python = ">=3.9"
+
+[project.optional-dependencies]
+
+[project.scripts]
+
+[project.urls]
+Homepage = "https://github.com/AdrienPlacais/Spark3DBatch"
+
+[tool.black]
+line-length = 79
+target-version = ["py39"]
+
+[tool.isort]
+profile = "black"
+src_paths = ["./spark3dbatch/"]
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages]
+find = { where = ["src"] }
+
+[tool.setuptools_scm]
+
+[tool.cibuildwheel]
+build-verbosity = 1
+
+[build-system]
+build-backend = "setuptools.build_meta"
+requires = ["setuptools>=64", "setuptools-scm>=8, <9"]
