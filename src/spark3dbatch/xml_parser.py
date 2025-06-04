@@ -81,7 +81,7 @@ class SparkXML:
         path = (f"{key}[{val}]" for key, val in zip(self._keys, values_xml))
         configuration = self._spark.findall("/".join(path))
         if len(configuration) != 1:
-            raise IOError("More than one or no configuration was found.")
+            raise OSError("More than one or no configuration was found.")
         return configuration[0]
 
     def edit(

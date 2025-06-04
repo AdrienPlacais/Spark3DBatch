@@ -241,7 +241,7 @@ class Spark3D:
 
             return fp_project, cmd_input
 
-        raise IOError(f"Inconsistent input files {args}")
+        raise OSError(f"Inconsistent input files {args}")
 
     def _get_cmd(
         self, mode: MODES, config: dict[str, int] | None = None
@@ -288,7 +288,7 @@ class Spark3D:
                 cmd.append(key + "=" + str(value))
             return " ".join(shlex.quote(str(part)) for part in cmd)
 
-        raise IOError(f"configuration {mode} was not recognized.")
+        raise OSError(f"configuration {mode} was not recognized.")
 
     def _config_argument(
         self,
@@ -341,7 +341,7 @@ class Spark3D:
             + f"/VideoCoronaConfig:{video}//",
         }
         if mode not in d_mode:
-            raise IOError("Invalid mode.")
+            raise OSError("Invalid mode.")
         out.append(d_mode[mode])
         return "".join(out)
 
