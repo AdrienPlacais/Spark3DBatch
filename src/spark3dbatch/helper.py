@@ -59,12 +59,12 @@ def fmt_array(p_s: NDArray) -> str:
 def printc(*args: str, color: COLORS = "cyan"):
     """Print colored messages."""
     dict_c = {
-        "red": r"\x1b[31m",
-        "blue": r"\x1b[34m",
-        "green": r"\x1b[32m",
-        "magenta": r"\x1b[35m",
-        "cyan": r"\x1b[36m",
-        "normal": r"\x1b[0m",
+        "red": "\x1b[31m",
+        "blue": "\x1b[34m",
+        "green": "\x1b[32m",
+        "magenta": "\x1b[35m",
+        "cyan": "\x1b[36m",
+        "normal": "\x1b[0m",
     }
     print(dict_c[color] + args[0] + dict_c["normal"], end=" ")
     for arg in args[1:]:
