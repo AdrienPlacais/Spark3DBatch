@@ -4,15 +4,21 @@ Python library to launch (batch) Spark3D simulations.
 `SPARK3D 2025 SP4`.
 
 ## Installation
-This library needs Python 3.x.
-Firstly, adapt the variables `SPARK_PATH` and `BIN_PATH` in `spark3d.py` to
-your distribution.
+1. Create a dedicated Python environment, activate it.
+2. Run `pip install spark3d-batch`.
 
-You must set the environment variable `$SPARK3DPATH` to point to the folder containing the SPARK3D executable.
-In general, adding the following line to your `.bashrc` will do the trick:
-```bash
-export SPARK3DPATH="/opt/cst/CST_Studio_Suite_20XX/SPARK3D/"
-```
+> [!NOTE]
+> If you are completely new to Python and these instructions are unclear, check [this tutorial](https://python-guide.readthedocs.io/en/latest/).
+> In particular, you will want to:
+> 1. [Install Python](https://python-guide.readthedocs.io/en/latest/starting/installation/) 3.9 or higher.
+> 2. [Learn to use Python environments](https://python-guide.readthedocs.io/en/latest/dev/virtualenvs/), `pipenv` or `virtualenv`.
+> 3. [Install a Python IDE](https://python-guide.readthedocs.io/en/latest/dev/env/#ides) such as Spyder or VSCode.
+
+3. Set the environment variable `$SPARK3DPATH` to point to the folder containing the SPARK3D executable.
+   In general, adding the following line to your `.bashrc` will do the trick:
+   ```bash
+   export SPARK3DPATH="/opt/cst/CST_Studio_Suite_20XX/SPARK3D/"
+   ```
 
 > [!IMPORTANT]
 > Not tested on Windows.
