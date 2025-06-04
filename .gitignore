@@ -64,3 +64,4 @@ target/
 *.txt
 
 *_backup.xml
+*.spkx
