@@ -21,7 +21,7 @@ Two options:
 ## To-do
 
 ### Important
-- [ ] Allow for control over accelerating field instead of power
+- [x] Allow for control over accelerating field instead of power
 - [ ] Change how the path to SPARK3D is declared. Currently not robust at all.
 
 ### Secondary
