@@ -46,7 +46,7 @@ Two options:
 - [ ] Complete installation instructions
 - [ ] Static typing to detect allowed keys in `XML`
 - [ ] CLI interface
-- [ ] On `pip`
+- [x] On `pip`
 - [ ] Tests
 - [ ] Use `logging` instead of `printc`
 - [x] Add `release.py`
