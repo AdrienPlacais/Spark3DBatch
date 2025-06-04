@@ -23,6 +23,8 @@ MODES = Literal[
 RF_UNITS_T = Literal["m", "mm", "inches"]
 RF_UNITS = ("m", "mm", "inches")
 
+FIELD_MAPS = (".dsp", ".f3e", ".mfe")
+
 
 class Spark3D:
     """Spark3D simulation object."""
@@ -33,7 +35,7 @@ class Spark3D:
     def __init__(
         self,
         project_path: Path,
-        *args: str,
+        *files: str,
         output_path: Path | None = None,
         **kwargs,
     ) -> None:
@@ -54,14 +56,17 @@ class Spark3D:
         self.project_path = project_path
 
         file_name, base_command = self._handle_different_input_types(
-            *args, **kwargs
+            *files, **kwargs
         )
         self.file_name = file_name
         self.input = project_path / file_name
         self.base_command = base_command
 
-        if output_path is None:
-            self.output_path = self.project_path / Path(file_name).stem
+        self.output_path = (
+            output_path
+            if output_path is not None
+            else self.project_path / Path(file_name).stem
+        )
 
         self.results_path: Path | None = None
         # created by self._get_results_dir in self.run (path depends on the
@@ -213,8 +218,7 @@ class Spark3D:
             cmd_input = f"--input={paths[0]}"
             return paths[0], cmd_input
 
-        allowed_field_maps = (".dsp", ".f3e", ".mfe")
-        inter = [ext for ext in filetypes if ext in allowed_field_maps]
+        inter = [ext for ext in filetypes if ext in FIELD_MAPS]
 
         if new_project_name is None:
             new_project_name = "my_project.spkx"
@@ -399,23 +403,37 @@ class Spark3D:
 
 
 if __name__ == "__main__":
-    project = Path(
-        "/home/placais/Documents/simulation/python/Spark3DBatch/data/"
-    )
+    import tempfile
+    from importlib import resources
+
+    output_path = Path(tempfile.mkdtemp())
+
     files = ("Coax_filter_CST(M, C, Eigenmode).spkx",)
-    spk = Spark3D(project, *files)
+    new_project_name = None
 
-    mode = "--validate"
-    config = {
-        "project": 1,
-        "model": 1,
-        "confs": 1,
-        "em_conf": 1,
-        "discharge_conf": 1,
-        "video": -1,
-    }
+    # files = ("Coax_filter_CST(M, C, Eigenmode).xml", "Coax_filter_CST(M, C, Eigenmode).f3e")
+    # new_project_name = output_path / "new_project.spkx"
 
-    # Run
-    spk.run(mode, config)
-    if mode == "--config":
-        my_power, my_time = spk.get_full_results()
+    with resources.as_file(
+        resources.files("spark3dbatch.data")
+    ) as project_path:
+        spk = Spark3D(
+            project_path,
+            *files,
+            output_path=output_path,
+            new_project_name=new_project_name,
+        )
+
+        mode = "--validate"
+        config = {
+            "project": 1,
+            "model": 1,
+            "confs": 1,
+            "em_conf": 1,
+            "discharge_conf": 1,
+            "video": -1,
+        }
+
+        spk.run(mode, config)
+        if mode == "--config":
+            my_power, my_time = spk.get_full_results()

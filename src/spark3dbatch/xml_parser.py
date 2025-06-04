@@ -134,11 +134,14 @@ class SparkXML:
 if __name__ == "__main__":
     from importlib import resources
 
-    file = resources.files("spark3dbatch.data") / "Coax_filter_CST.xml"
+    file = (
+        resources.files("spark3dbatch.data")
+        / "Coax_filter_CST(M, C, Eigenmode).xml"
+    )
     xml = SparkXML(file)
 
     # As already defined
-    D_CONF = {
+    config = {
         "project": 1,
         "model": 1,
         "confs": 1,
@@ -146,15 +149,14 @@ if __name__ == "__main__":
         "discharge_conf": 1,
         "video": -1,
     }
-    conf = xml.get_config(**D_CONF)
+    xml_conf = xml.get_config(**config)
 
-    power = np.linspace(1e-2, 1e2, 10)
-    s_power = fmt_array(power)
+    power = fmt_array(np.linspace(1e-2, 1e2, 10))
 
-    D_EDIT = {
+    alter_conf = {
         "initialNumberElectrons": int(2e4),
         "pathRelativePrecision": 0.1,
-        "PowerSweep/sweepPoints": s_power,
+        "PowerSweep/sweepPoints": power,
     }
     # Warning, save=True will overwrite previous ``XML``.
-    xml.edit(conf, save=False, **D_EDIT)
+    xml.edit(xml_conf, save=False, **alter_conf)
